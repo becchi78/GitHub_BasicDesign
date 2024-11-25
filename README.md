@@ -15,15 +15,35 @@
 
 ### 1.2 対象範囲
 
-本設計書は、インフラストラクチャチームとアプリケーションチームによる GitHub Organization の利用に関する基本的な設計を定義します。具体的には、組織構造、権限管理、リポジトリ運用、開発ワークフロー、品質管理の各側面について規定します。
-なお、CI/CD パイプラインやコーディングルールなどは別途定める開発ガイドラインにて規定するものとし、本設計書の対象外とします。
+本設計書、GitHub Enterprise Cloudにおける Organization の利用に関する基本的な設計を、組織構造、権限管理、リポジトリ運用、開発ワークフロー、品質管理の各側面について規定します。
+
+CI/CD パイプライン、コーディングルールなどは別途定める開発ガイドラインにて規定するものとし、本設計書の対象外とします。
+また、GitHub Enterpriseの設計についても本設計の対象外とします。GitHub Enterprise CloudとGitHub Organizationの関係を以下の図に示します。
+
+```mermaid
+graph TD
+    subgraph GitHub Enterprise Cloud
+
+    subgraph Organization B
+      RepositoryB-1
+      RepositoryB-2
+    end
+
+    subgraph Organization A
+      RepositoryA-1
+      RepositoryA-2
+    end
+    end
+```
+
+GitリポジトリはOrganization単位で管理され、プロジェクト単位にOrganizationを割り当て権限管理をすることで、お互いのプロジェクトのリポジトリを参照できないようにします。
 
 ### 1.3 対象読者
 
 本設計書は、以下の役割を持つメンバーを対象としています：
 
-| メンバー         | 役割                                                          |
-| ---------------- | ------------------------------------------------------------- |
+| メンバー | 役割 |
+| --- | --- |
 | オーナー         | GitHub の管理者、プロジェクトマネージャー、プロダクトオーナー |
 | チームリーダー   | チームの責任者                                                |
 | シニアエンジニア | 上級開発エンジニア                                            |
@@ -46,60 +66,85 @@
 
 ## 2. Organization 設計
 
-### 2.1 Organization 構成
+### 2.1 メンバーの役割定義
 
-GitHub におけるOrgnizationの基本構造を以下のように定義します。
+Organizationに所属するメンバーの役割を以下のように定義します。
+
+| メンバー  | 主な役割 |
+| --- | --- |
+| オーナー | システム全体の品質保証、本番環境の管理 |
+| リーダー | アーキテクチャ設計、チーム開発方針の策定、コードの最終承認 |
+| シニアエンジニア | 開発メンバーの役割に加え、技術的判断、コードレビュー、メンバーの技術支援 |
+| エンジニア | 機能実装、ユニットテスト作成、ドキュメント作成 |
+
+### 2.2 Team 構成
+
+GitHub におけるOrgnization内のTeam機能を使用し、以下の階層構造で権限管理を行います。
 
 ```mermaid
 graph TD
     subgraph Organization
-    A[オーナー] --> B[リーダー]
-    A --> C[リーダー]
+    A[Oweners] --> B[Readers]
+    A --> C[Readers]
 
-    subgraph インフラストラクチャチーム
-    B --> D[シニアエンジニア]
-    B --> E[開発メンバー]
+    subgraph Infrastructure Team
+    B --> D[Seniors]
+    D --> E[Engineers]
     end
 
-    subgraph アプリケーションチーム
-    C --> F[シニアエンジニア]
-    C --> G[開発メンバー]
+    subgraph Application Team
+    C --> F[Seniors]
+    F --> G[Engineers]
     end
     end
 ```
 
-この組織構造により、以下の効果を実現します。
+各Teamに所属するメンバーを以下に示します。
 
-- チーム構造の可視化
-- チーム単位での権限管理
-- 責任範囲の明確化
+| Team | 所属メンバー |
+|------|---|
+| Owners | オーナー |
+| Application | アプリチームのメンバー |
+| Application/Readers | アプリチームのリーダー |
+| Application/Seniors | アプリチームのシニアエンジニア |
+| Application/Engineers | アプリチームのエンジニア |
+| Infrastructure | インフラチームメンバー |
+| Infrastructure/Readers | インフラチームのリーダー |
+| Infrastructure/Seniors | インフラチームのシニアエンジニア |
+| Infrastructure/Engineers | インフラチームのエンジニア |
 
-### 2.2 メンバーの役割定義
+この組織構造により、以下を実現します。
 
-各メンバーの役割を以下のように定義します。
+1. 柔軟なメンバー管理
+    - 個人をTeamに所属させることで、個人の指定なしで権限管理が可能
+    - メンバーの昇格時はTeamの所属を変更するだけで権限が自動的に更新
+    - 退職時はTeamから削除するだけで全ての権限が削除
 
-| メンバー         | 主な役割                                                                 |
-| ---------------- | ------------------------------------------------------------------------ |
-| オーナー         | システム全体の品質保証、本番環境の管理                                   |
-| リーダー         | アーキテクチャ設計、チーム開発方針の策定、コードの最終承認               |
-| シニアエンジニア | 開発メンバーの役割に加え、技術的判断、コードレビュー、メンバーの技術支援 |
-| 開発メンバー     | 機能実装、ユニットテスト作成、ドキュメント作成                           |
+2. 段階的な権限付与
+    - Members: 基本的な開発権限
+    - Seniors: レビュー承認権限
+    - Leaders: 環境固有の承認権限
 
-## 2.3 権限定義
+### 2.3 権限定義
 
 GitHubにおける権限は以下の3つのレベルに分かれています。
-それぞれのレベルにはロールがあり、以下ではそのロールを示します。
 
-### Organization レベルのロール
+- Organization
+- Team
+- Repository
+
+それぞれのレベルにはロールがあり、以下でそのロールを示します。
+
+#### Organization レベルのロール
 
 Organization 全体に対する権限を定義するロールです。
 
-| ロール | 説明                                                                          |
-| ------ | ----------------------------------------------------------------------------- |
+| ロール | 説明 |
+| --- | --- |
 | Owner  | Organization の管理者権限。全ての設定変更、メンバー管理、支払い管理などが可能 |
 | Member | Organization のメンバーとして基本的な操作が可能                               |
 
-### GitHub の Team レベルのロール
+#### GitHub の Team レベルのロール
 
 Team 内での権限を定義するロールです。
 
@@ -108,7 +153,7 @@ Team 内での権限を定義するロールです。
 | Maintainer | チームの管理者権限。メンバーの追加・削除、Team 設定の変更が可能 |
 | Member     | チームのメンバーとして基本的な操作が可能                        |
 
-### GitHub の Repository レベルロール
+#### GitHub の Repository レベルロール
 
 リポジトリに対する権限を定義するロールです。
 
@@ -120,71 +165,233 @@ Team 内での権限を定義するロールです。
 | Triage   | Issue や Pull Request の管理が可能（コード変更不可）       |
 | Read     | 読み取りのみ可能                                           |
 
-### メンバーへのロール割り当て
+### 2.4 承認権限の設定
 
-| メンバー区分     | Organization Role | Team Role  | Repository Role | 説明                               |
-| ---------------- | ----------------- | ---------- | --------------- | ---------------------------------- |
-| オーナー         | Owner             | -          | Admin           | 組織全体の管理権限を持つ           |
-| チームリーダー   | Member            | Maintainer | Maintain        | チーム管理とコードの承認権限を持つ |
-| シニアエンジニア | Member            | Member     | Write           | コード変更と一部承認権限を持つ     |
-| 開発メンバー     | Member            | Member     | Write           | 基本的なコード変更権限を持つ       |
+#### Teamへのロール割り当て
 
-### 操作権限マトリクス
+各レベルのロールをTeamに割り当てることでTeamに対して適切な権限設定を行います。
 
-| 操作権限               | オーナー | リーダー | シニア | メンバー |
+| Team | Organization Role | Team Role | Repository Role |
+| ---|---|---|---|
+| Owners| Owner | - | - |
+| Application | Member | - | - |
+| Application/Leaders | Member | Maintainer | Admin |
+| Application/Seniors | Member | Maintainer | Maintain |
+| Application/Engineers | Member | Member | Write |
+| Infrastructure | Member | - | - |
+| Infrastructure/Leaders | Member | Maintainer | Admin |
+| Infrastructure/Seniors | Member | Maintainer | Maintain |
+| Infrastructure/Engineers | Member | Member | Write |
+
+（補足）ApplicationとInfrastructureのTeamには具体的な権限を付与せず、論理的なグループとしてのみ使用します。
+
+#### ブランチ保護ルール
+
+各ブランチには以下の保護ルールを設定します。
+
+| ブランチ | 必要な承認 | マージ権限 | 追加設定 |
+|---------|-----------|------------|----------|
+| production | Ownersの承認 | Owners のみ | 承認必須、ステータスチェック必須 |
+| staging | Leaders の承認 | Leaders のみ | 承認必須、ステータスチェック必須 |
+| develop | Seniors/Leaders の承認 | Write権限保持者 | 承認必須、ステータスチェック必須 |
+
+#### Code Ownersの設定
+
+各ブランチに対して.github/CODEOWNERSの設定をすることで、ブランチ全体に対する制限を設定します。
+
+```bash
+# デフォルトのCode Owner設定
+*                   @Organization/Infrastructure/Seniors @Organization/Application/Seniors
+                    @Organization/Infrastructure/Leaders @Organization/Application/Leaders
+
+# productionブランチ全体の所有者設定
+production          @Organization/Owners
+
+# stagingブランチ全体の所有者設定
+staging             @Organization/Infrastructure/Leaders @Organization/Application/Leaders
+
+# developブランチ全体の所有者設定
+develop             @Organization/Infrastructure/Seniors @Organization/Application/Seniors
+                    @Organization/Infrastructure/Leaders @Organization/Application/Leaders
+```
+
+#### 権限の優先順位
+
+GitHubにおける権限制御は、以下の順序で優先されます。
+
+1. Branch Protection Rules / CODEOWNERS（最優先）
+   - ブランチごとの保護設定
+   - マージ制限、承認要件
+   - コードオーナーの指定
+   - 例：productionブランチへのマージにはOwnerの承認が必須
+
+2. Repository Level（中間）
+   - リポジトリごとの権限設定
+   - Repository Role（Admin, Maintain, Write等）による基本権限
+   - 例：Admin権限を持っていても、Branch Protectionの制限は上書きできない
+
+3. Organization Level（最低位）
+   - Organization全体の設定
+   - TeamやMemberの基本権限
+   - 例：Organization MemberであってもRepository権限がなければアクセス不可
+
+この優先順位により、上位の設定が下位の設定を上書きします。例えば、Repository RoleでAdmin権限を持つユーザーでも、Branch ProtectionやCODEOWNERSの設定により、特定のブランチへのマージや承認が制限されます。
+
+### 2.5 操作権限マトリクス
+
+| 操作権限               | オーナー | リーダー | シニアエンジニア | エンジニア |
 | ---------------------- | :------: | :------: | :----: | :------: |
-| **Organization Level** |
+| **Organization Level** | | | | |
 | Organization 設定変更  |    ✅    |    ❌    |   ❌   |    ❌    |
 | Team 作成・削除        |    ✅    |    ❌    |   ❌   |    ❌    |
-| メンバー管理           |    ✅    |    ❌    |   ❌   |    ❌    |
+| メンバー管理           |    ✅    |    ✅*   |   ✅*  |    ❌    |
 | Billing 管理           |    ✅    |    ❌    |   ❌   |    ❌    |
-| **Team Level**         |
-| Team 設定変更          |    ✅    |    ✅    |   ❌   |    ❌    |
-| Team メンバー管理      |    ✅    |    ✅    |   ❌   |    ❌    |
-| **Repository Level**   |
+| **Team Level**         | | | | |
+| Team 設定変更          |    ✅    |    ✅*   |   ✅*  |    ❌    |
+| Team メンバー管理      |    ✅    |    ✅*   |   ✅*  |    ❌    |
+| **Repository Level**   | | | | |
 | リポジトリ作成         |    ✅    |    ✅    |   ❌   |    ❌    |
-| リポジトリ設定変更     |    ✅    |    ✅    |   ❌   |    ❌    |
+| リポジトリ設定変更     |    ✅    |    ✅    |   ✅   |    ❌    |
 | ブランチ保護設定       |    ✅    |    ✅    |   ❌   |    ❌    |
 | Webhooks 設定          |    ✅    |    ✅    |   ❌   |    ❌    |
 | セキュリティ設定       |    ✅    |    ✅    |   ❌   |    ❌    |
 | PR のマージ（main）    |    ✅    |    ❌    |   ❌   |    ❌    |
-| PR のマージ（staging） |    ✅    |    ✅    |   ❌   |    ❌    |
-| PR のマージ（develop） |    ✅    |    ✅    |   ❌   |    ❌    |
-| PR のレビュー          |    ✅    |    ✅    |   ✅   |    ✅    |
+| PR のマージ（staging） |    ✅    |    ✅    |   ✅   |    ❌    |
+| PR のマージ（develop） |    ✅    |    ✅    |   ✅   |    ✅    |
+| PRの承認（main）       |    ✅    |    ❌    |   ❌   |    ❌    |
+| PRの承認（staging）    |    ✅    |    ✅    |   ❌   |    ❌    |
+| PRの承認（develop）    |    ✅    |    ✅    |   ✅   |    ❌    |
+| PR のレビュー          |    ✅    |    ✅    |   ✅   |    ❌    |
 | Issue 管理             |    ✅    |    ✅    |   ✅   |    ✅    |
 | コードの Push          |    ✅    |    ✅    |   ✅   |    ✅    |
 
-### コードレビュー承認の制御
+- ✅* は「自身が所属するTeamのみ可能」を示します。
 
-GitHub の Code Owners 機能を使用して、以下のようにレビュー承認権限を制御します：
+***(ここまで)***
 
-```bash
-# デフォルトのCode Owner設定
-*                   @senior-engineers @team-leaders
+## 3. リポジトリ設計
 
-# mainブランチ全体の所有者設定
-# mainブランチへのすべての変更にオーナーの承認が必要
-main                @organization-owners
+### 3.1 保護ブランチの設定
 
-# stagingブランチ全体の所有者設定
-# stagingブランチへのすべての変更にチームリーダーの承認が必要
-staging             @team-leaders
+GitHubのブランチ保護機能を利用して、ブランチ（production、staging、develop）への変更を制御します。この設定により、意図しない変更の防止と、適切なレビュープロセスの実施を強制します。
 
-# developブランチ全体の所有者設定
-develop             @senior-engineers @team-leaders
+#### ブランチ保護の基本方針
+
+1. 直接的な変更の防止
+
+    保護対象ブランチへの直接的なプッシュを禁止し、すべての変更をPull Requestを通じて行うことを強制します。
+    これにより、すべての変更に対してレビューとCIチェックを確実に実施できます。
+
+2. 段階的な承認プロセス
+
+    環境ごとに異なる承認要件を設定し、変更の重要度に応じた承認プロセスを実現します。
+    production環境への変更は最も厳格な承認プロセスを必要とします。
+
+3. 品質チェックの強制
+
+    develop保護ブランチで、マージ前のステータスチェック（CI）の通過を必須とします。
+    コードの品質基準を満たすことを保証します。
+
+#### 保護設定
+
+以下に、GitHub Repositoryの設定画面における具体的な設定項目と設定値を示します。
+***Branch protection rules***
+## 3. リポジトリ設計
+
+### 3.4 保護ブランチの設定
+
+GitHubのブランチ保護機能を利用して、重要なブランチ（production、staging、develop）への変更を制御します。この設定により、意図しない変更の防止と、適切なレビュープロセスの実施を強制します。
+
+#### ブランチ保護の基本方針
+
+1. **直接的な変更の防止**
+   - 保護対象ブランチへの直接的なプッシュを禁止し、すべての変更をPull Requestを通じて行うことを強制します。
+   - これにより、すべての変更に対してレビューとCIチェックを確実に実施できます。
+
+2. **段階的な承認プロセス**
+   - 環境ごとに異なる承認要件を設定し、変更の重要度に応じた承認プロセスを実現します。
+   - production環境への変更は最も厳格な承認プロセスを必要とします。
+
+3. **品質チェックの強制**
+   - すべての保護ブランチで、マージ前のステータスチェック（CI）の通過を必須とします。
+   - コードの品質基準を満たすことを保証します。
+
+#### 具体的な保護設定
+
+以下に、GitHub Repositoryの設定画面における具体的な設定項目と設定値を示します：
+
+【production ブランチ】
+
+```markdown
+Required Reviews
+- ✓ Require a pull request before merging
+  - ✓ Require approvals (1人)
+  - ✓ Dismiss stale pull request approvals when new commits are pushed
+  - ✓ Require review from Code Owners
+  - ✓ Restrict who can dismiss pull request reviews (Owners only)
+- ✓ Require status checks to pass before merging
+  - ✓ Require branches to be up to date before merging
+  - Required status checks:
+    - continuous-integration/jenkins/pr
+    - security-scan
+    - lint-check
+- ✓ Require conversation resolution before merging
+- ✓ Include administrators
+- ✓ Restrict who can push to matching branches
+  - Allow specified actors (Owners only)
 ```
 
-#### 承認ルール
+【staging ブランチ】
 
-各環境に対する承認ルールを以下のように設定します：
+```markdown
+Required Reviews
+- ✓ Require a pull request before merging
+  - ✓ Require approvals (1人)
+  - ✓ Dismiss stale pull request approvals when new commits are pushed
+  - ✓ Require review from Code Owners
+  - ✓ Restrict who can dismiss pull request reviews (Leaders only)
+- ✓ Require status checks to pass before merging
+  - ✓ Require branches to be up to date before merging
+  - Required status checks:
+    - continuous-integration/jenkins/pr
+    - lint-check
+- ✓ Require conversation resolution before merging
+- ✓ Include administrators
+- ✓ Restrict who can push to matching branches
+  - Allow specified actors (Leaders only)
+```
 
-| 環境                    | 必要な承認者     | 説明                                                               |
-| ----------------------- | ---------------- | ------------------------------------------------------------------ |
-| 本番（main）            | オーナー         | • オーナーの承認が必須<br>• リーダーのレビューを推奨               |
-| ステージング（staging） | チームリーダー   | • チームリーダーの承認が必須<br>• シニアエンジニアのレビューを推奨 |
-| 開発（develop）         | シニアエンジニア | • シニアエンジニアの承認が必須                                     |
+【develop ブランチ】
+```markdown
+Required Reviews
+- ✓ Require a pull request before merging
+  - ✓ Require approvals (1人)
+  - ✓ Dismiss stale pull request approvals when new commits are pushed
+  - ✓ Require review from Code Owners
+- ✓ Require status checks to pass before merging
+  - ✓ Require branches to be up to date before merging
+  - Required status checks:
+    - continuous-integration/jenkins/pr
+    - lint-check
+- ✓ Require conversation resolution before merging
+- ✓ Include administrators
+```
 
-## 3. レビュー方針
+#### 補足事項
+
+1. **レビュー承認の破棄**
+   - 新しいコミットがプッシュされた際は、既存の承認を自動的に破棄します。
+   - これにより、変更後のコードに対する再レビューを強制します。
+
+2. **会話の解決要件**
+   - すべての保護ブランチで、PRのレビューコメントの解決を必須としています。
+   - これにより、レビューで指摘された問題の確実な対応を促します。
+
+3. **管理者への適用**
+   - 管理者（Admin権限保持者）に対しても同じ制限を適用します。
+   - これにより、誤操作による意図しない変更を防ぎます。
+
+## 4. レビュー方針
 
 ### 3.1 プルリクエスト作成ガイドライン
 
