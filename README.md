@@ -83,21 +83,23 @@ GitHub における Orgnization 内の Team 機能を使用し、以下の階層
 
 ```mermaid
 graph TD
-    subgraph Organization
-    A[Oweners] --> B[Readers]
-    A --> C[Readers]
+   subgraph Organization
+      A[Oweners] --> B[Readers]
+      A --> C[Readers]
 
-    subgraph Infrastructure Team
-    B --> D[Seniors]
-    D --> E[Engineers]
-    end
+   subgraph Infrastructure Team
+      B --> D[Seniors]
+      D --> E[Engineers]
+   end
 
-    subgraph Application Team
-    C --> F[Seniors]
-    F --> G[Engineers]
-    end
-    end
+   subgraph Application Team
+      C --> F[Seniors]
+      F --> G[Engineers]
+   end
+   end
 ```
+
+（補足）Application と Infrastructure の Team には具体的な権限を付与せず、論理的なグループとしてのみ使用します。
 
 各 Team に所属するメンバーを以下に示します。
 
@@ -122,7 +124,7 @@ graph TD
    - 退職時は Team から削除するだけで全ての権限が削除
 
 2. 段階的な権限付与
-   - Members: 基本的な開発権限
+   - Engineers: 基本的な開発権限
    - Seniors: レビュー承認権限
    - Leaders: 環境固有の承認権限
 
@@ -176,15 +178,13 @@ Team 内での権限を定義するロールです。
 | ------------------------ | ----------------- | ---------- | --------------- |
 | Owners                   | Owner             | -          | -               |
 | Application              | Member            | -          | -               |
-| Application/Leaders      | Member            | Maintainer | Admin           |
-| Application/Seniors      | Member            | Maintainer | Maintain        |
+| Application/Leaders      | Owner             | Maintainer | Admin           |
+| Application/Seniors      | Member            | Maintainer | Admin           |
 | Application/Engineers    | Member            | Member     | Write           |
 | Infrastructure           | Member            | -          | -               |
-| Infrastructure/Leaders   | Member            | Maintainer | Admin           |
-| Infrastructure/Seniors   | Member            | Maintainer | Maintain        |
+| Infrastructure/Leaders   | Owner             | Maintainer | Admin           |
+| Infrastructure/Seniors   | Member            | Maintainer | Admin           |
 | Infrastructure/Engineers | Member            | Member     | Write           |
-
-（補足）Application と Infrastructure の Team には具体的な権限を付与せず、論理的なグループとしてのみ使用します。
 
 #### ブランチ保護ルール
 
@@ -242,31 +242,31 @@ GitHub における権限制御は、以下の順序で優先されます。
 
 ### 2.5 操作権限マトリクス
 
-| 操作権限               | オーナー | リーダー | シニアエンジニア | エンジニア |
-| ---------------------- | :------: | :------: | :--------------: | :--------: |
-| **Organization Level** |          |          |                  |            |
-| Organization 設定変更  |    ✅    |    ❌    |        ❌        |     ❌     |
-| Team 作成・削除        |    ✅    |    ❌    |        ❌        |     ❌     |
-| メンバー管理           |    ✅    |   ✅\*   |       ✅\*       |     ❌     |
-| Billing 管理           |    ✅    |    ❌    |        ❌        |     ❌     |
-| **Team Level**         |          |          |                  |            |
-| Team 設定変更          |    ✅    |   ✅\*   |       ✅\*       |     ❌     |
-| Team メンバー管理      |    ✅    |   ✅\*   |       ✅\*       |     ❌     |
-| **Repository Level**   |          |          |                  |            |
-| リポジトリ作成         |    ✅    |    ✅    |        ❌        |     ❌     |
-| リポジトリ設定変更     |    ✅    |    ✅    |        ✅        |     ❌     |
-| ブランチ保護設定       |    ✅    |    ✅    |        ❌        |     ❌     |
-| Webhooks 設定          |    ✅    |    ✅    |        ❌        |     ❌     |
-| セキュリティ設定       |    ✅    |    ✅    |        ❌        |     ❌     |
-| PR のマージ（main）    |    ✅    |    ❌    |        ❌        |     ❌     |
-| PR のマージ（staging） |    ✅    |    ✅    |        ✅        |     ❌     |
-| PR のマージ（develop） |    ✅    |    ✅    |        ✅        |     ✅     |
-| PR の承認（main）      |    ✅    |    ❌    |        ❌        |     ❌     |
-| PR の承認（staging）   |    ✅    |    ✅    |        ❌        |     ❌     |
-| PR の承認（develop）   |    ✅    |    ✅    |        ✅        |     ❌     |
-| PR のレビュー          |    ✅    |    ✅    |        ✅        |     ❌     |
-| Issue 管理             |    ✅    |    ✅    |        ✅        |     ✅     |
-| コードの Push          |    ✅    |    ✅    |        ✅        |     ✅     |
+| 操作権限                  | オーナー | リーダー | シニアエンジニア | エンジニア |
+| ------------------------- | :------: | :------: | :--------------: | :--------: |
+| **Organization Level**    |          |          |                  |            |
+| Organization 設定変更     |    ✅    |    ✅    |        ❌        |     ❌     |
+| Team 作成・削除           |    ✅    |    ✅    |        ❌        |     ❌     |
+| メンバー管理              |    ✅    |    ✅    |        ❌        |     ❌     |
+| Billing 管理              |    ✅    |    ✅    |        ❌        |     ❌     |
+| **Team Level**            |          |          |                  |            |
+| Team 設定変更             |    ✅    |   ✅\*   |       ✅\*       |     ❌     |
+| Team メンバー管理         |    ✅    |   ✅\*   |       ✅\*       |     ❌     |
+| **Repository Level**      |          |          |                  |            |
+| リポジトリ作成            |    ✅    |    ✅    |        ✅        |     ❌     |
+| リポジトリ設定変更        |    ✅    |    ✅    |        ✅        |     ❌     |
+| ブランチ保護設定          |    ✅    |    ✅    |        ✅        |     ❌     |
+| Webhooks 設定             |    ✅    |    ✅    |        ✅        |     ❌     |
+| セキュリティ設定          |    ✅    |    ✅    |        ✅        |     ❌     |
+| PR のマージ（production） |    ✅    |    ✅    |        ❌        |     ❌     |
+| PR のマージ（staging）    |    ✅    |    ✅    |        ✅        |     ❌     |
+| PR のマージ（develop）    |    ✅    |    ✅    |        ✅        |     ✅     |
+| PR の承認（production）   |    ✅    |    ✅    |        ❌        |     ❌     |
+| PR の承認（staging）      |    ✅    |    ✅    |        ✅        |     ❌     |
+| PR の承認（develop）      |    ✅    |    ✅    |        ✅        |     ❌     |
+| PR のレビュー             |    ✅    |    ✅    |        ✅        |     ❌     |
+| Issue 管理                |    ✅    |    ✅    |        ✅        |     ✅     |
+| コードの Push             |    ✅    |    ✅    |        ✅        |     ✅     |
 
 - ✅\* は「自身が所属する Team のみ可能」を示します。
 
