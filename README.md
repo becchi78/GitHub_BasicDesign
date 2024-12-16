@@ -6,7 +6,7 @@
 
 本設計書は、プロジェクトにおける GitHub Organization の利用方針および運用ルールを定義することを目的としています。この設計書に基づいて開発プロセスを標準化し、効率的なチーム開発とコード品質の向上を実現します。
 
-本書で定義する内容は以下の通りです：
+本書では内容を定義します。
 
 - チーム構造とロールの定義
 - 権限管理とアクセス制御
@@ -40,7 +40,7 @@ Git リポジトリは Organization 単位で管理され、プロジェクト�
 
 ### 1.3 対象読者
 
-本設計書は、以下の役割を持つメンバーを対象としています：
+本設計書は、以下の役割を持つメンバーを対象としています。
 
 | メンバー         | 役割                                                          |
 | ---------------- | ------------------------------------------------------------- |
@@ -72,14 +72,14 @@ Organization に所属するメンバーの役割を以下のように定義し�
 
 | メンバー         | 主な役割                                                                 |
 | ---------------- | ------------------------------------------------------------------------ |
-| オーナー         | システム全体の品質保証、本番環境の管理                                   |
+| オーナー         | システム全体の管理及び品質保証、本番環境の運用管理                       |
 | リーダー         | アーキテクチャ設計、チーム開発方針の策定、コードの最終承認               |
 | シニアエンジニア | エンジニアの役割に加え、技術的判断、コードレビュー、エンジニアの技術支援 |
 | エンジニア       | 機能実装、ユニットテスト作成、ドキュメント作成                           |
 
 ### 2.2 Team 構成
 
-GitHub における Orgnization 内の Team 機能を使用し、以下の階層構造で権限管理を行います。
+GitHub における Organization 内の Team 機能を使用し、以下の階層構造で権限管理を行います。
 
 ```mermaid
 graph TD
@@ -99,7 +99,7 @@ graph TD
    end
 ```
 
-（補足）Application と Infrastructure の Team には具体的な権限を付与せず、論理的なグループとしてのみ使用します。
+（補足）Application と Infrastructure の Team には具体的な権限を付与せず、論理的なグループとして分類を目的に使用します。
 
 各 Team に所属するメンバーを以下に示します。
 
@@ -307,19 +307,19 @@ GitHub のブランチ保護機能を利用して、保護対象ブランチ（p
 
 Github のブランチ保護ルールの設定項目、その内容、および各ブランチでの有効状態をまとめます。
 
-| 設定項目（英語）                                                 | 設定内容の説明（日本語）                                         | develop                   | staging         | production     |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------- | ------------------------- | --------------- | -------------- |
-| Required Reviews                                                 | PR を必須とし、直接のマージを禁止する                            | ✓                         | ✓               | ✓              |
-| Required number of approvals                                     | レビュー承認者の必要人数（1 名）                                 | ✓                         | ✓               | ✓              |
-| Dismiss stale pull request approvals when new commits are pushed | 新しいコミットがプッシュされた際に、既存の承認を無効化する       | ✓                         | ✓               | ✓              |
-| Require review from Code Owners                                  | コードオーナーからのレビュー承認を必須とする                     | ✓                         | ✓               | ✓              |
-| Restrict who can dismiss pull request reviews                    | PR のレビューを却下できる権限者を制限する                        | -                         | Leaders/Seniors | Owners/Leaders |
-| Require status checks to pass before merging                     | ステータスチェックの通過をマージの条件とする                     | ✓                         | ✓               | ✓              |
-| Require branches to be up to date before merging                 | マージ前にターゲットブランチに対して最新状態であることを要求する | ✓                         | ✓               | ✓              |
-| Required status checks\*                                         | マージ前に通過が必要なステータスチェック項目を指定する           | 静的解析/ lint-check / UT | -               | -              |
-| Require conversation resolution before merging                   | すべての会話（コメント）が解決済みであることをマージの条件とする | ✓                         | ✓               | ✓              |
-| Include administrators                                           | 管理者に対してもこれらの制限を適用する                           | ✓                         | ✓               | ✓              |
-| Restrict who can push to matching branches                       | 対象ブランチへの直接プッシュができる権限者を制限する             | -                         | -               | -              |
+| 設定項目                                                         | 設定内容                                                         | develop           | staging         | production     |
+| ---------------------------------------------------------------- | ---------------------------------------------------------------- | ----------------- | --------------- | -------------- |
+| Required Reviews                                                 | PR を必須とし、直接のマージを禁止する                            | ✓                 | ✓               | ✓              |
+| Required number of approvals                                     | レビュー承認者の必要人数（1 名）                                 | ✓                 | ✓               | ✓              |
+| Dismiss stale pull request approvals when new commits are pushed | 新しいコミットがプッシュされた際に、既存の承認を無効化する       | ✓                 | ✓               | ✓              |
+| Require review from Code Owners                                  | コードオーナーからのレビュー承認を必須とする                     | ✓                 | ✓               | ✓              |
+| Restrict who can dismiss pull request reviews                    | PR のレビューを却下できる権限者を制限する                        | -                 | Leaders/Seniors | Owners/Leaders |
+| Require status checks to pass before merging                     | ステータスチェックの通過をマージの条件とする                     | ✓                 | ✓               | ✓              |
+| Require branches to be up to date before merging                 | マージ前にターゲットブランチに対して最新状態であることを要求する | ✓                 | ✓               | ✓              |
+| Required status checks\*                                         | マージ前に通過が必要なステータスチェック項目を指定する           | 構文チェック / UT | -               | -              |
+| Require conversation resolution before merging                   | すべての会話（コメント）が解決済みであることをマージの条件とする | ✓                 | ✓               | ✓              |
+| Include administrators                                           | 管理者に対してもこれらの制限を適用する                           | ✓                 | ✓               | ✓              |
+| Restrict who can push to matching branches                       | 対象ブランチへの直接プッシュができる権限者を制限する             | -                 | -               | -              |
 
 - \* 必要なチェックは開発側と検討して実装します。
 
@@ -730,7 +730,7 @@ Issue template の内容を以下に規定します。
 
 #### 必須ファイル設定
 
-リポジトリの標準化と効率的な運用のため、以下のファイルを必須とします：
+リポジトリの標準化と効率的な運用のため、以下のファイルを必須とします。
 
 - `.github/CODEOWNERS`: コードレビュー担当者の明確化
 - `.github/pull_request_template.md`: PR フォーマットの統一
