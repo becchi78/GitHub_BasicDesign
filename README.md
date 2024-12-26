@@ -190,7 +190,7 @@ Team 内での権限を定義するロールです。
 
 各ブランチには以下の保護ルールを設定します。
 
-| ブランチ   | 必要な承認             | マージ権限       | 追加設定                         |
+| ブランチ   | 必要な承認             | merge 権限       | 追加設定                         |
 | ---------- | ---------------------- | ---------------- | -------------------------------- |
 | production | Owners の承認          | Owners のみ      | 承認必須、ステータスチェック必須 |
 | staging    | Leaders の承認         | Leaders のみ     | 承認必須、ステータスチェック必須 |
@@ -223,9 +223,9 @@ GitHub における権限制御は、以下の順序で優先されます。
 1. Branch Protection Rules / CODEOWNERS（最優先）
 
    - ブランチごとの保護設定
-   - マージ制限、承認要件
+   - merge 制限、承認要件
    - コードオーナーの指定
-   - 例：production ブランチへのマージには Owner の承認が必須
+   - 例：production ブランチへの merge には Owner の承認が必須
 
 2. Repository Level（中間）
 
@@ -238,7 +238,7 @@ GitHub における権限制御は、以下の順序で優先されます。
    - Team や Member の基本権限
    - 例：Organization Member であっても Repository 権限がなければアクセス不可
 
-この優先順位により、上位の設定が下位の設定を上書きします。例えば、Repository Role で Admin 権限を持つユーザーでも、Branch Protection や CODEOWNERS の設定により、特定のブランチへのマージや承認が制限されます。
+この優先順位により、上位の設定が下位の設定を上書きします。例えば、Repository Role で Admin 権限を持つユーザーでも、Branch Protection や CODEOWNERS の設定により、特定のブランチへの merge や承認が制限されます。
 
 ### 2.5 操作権限マトリクス
 
@@ -258,9 +258,9 @@ GitHub における権限制御は、以下の順序で優先されます。
 | ブランチ保護設定          |    ✅    |    ✅    |        ✅        |     ❌     |
 | Webhooks 設定             |    ✅    |    ✅    |        ✅        |     ❌     |
 | セキュリティ設定          |    ✅    |    ✅    |        ✅        |     ❌     |
-| PR のマージ（production） |    ✅    |    ✅    |        ❌        |     ❌     |
-| PR のマージ（staging）    |    ✅    |    ✅    |        ✅        |     ❌     |
-| PR のマージ（develop）    |    ✅    |    ✅    |        ✅        |     ✅     |
+| PR の merge（production） |    ✅    |    ✅    |        ❌        |     ❌     |
+| PR の merge（staging）    |    ✅    |    ✅    |        ✅        |     ❌     |
+| PR の merge（develop）    |    ✅    |    ✅    |        ✅        |     ✅     |
 | PR の承認（production）   |    ✅    |    ✅    |        ❌        |     ❌     |
 | PR の承認（staging）      |    ✅    |    ✅    |        ✅        |     ❌     |
 | PR の承認（develop）      |    ✅    |    ✅    |        ✅        |     ❌     |
@@ -288,7 +288,7 @@ GitHub のブランチ保護機能を利用して、保護対象ブランチ（p
 
 3. 品質チェックの強制
 
-   develop 保護ブランチで、マージ前のステータスチェック（UT）の通過を必須とします。
+   develop 保護ブランチで、merge 前のステータスチェック(GitHub Actions)の通過を必須とします。
    コードの品質基準を満たすことを保証します。
 
 4. レビュー承認の破棄
@@ -307,19 +307,19 @@ GitHub のブランチ保護機能を利用して、保護対象ブランチ（p
 
 Github のブランチ保護ルールの設定項目、その内容、および各ブランチでの有効状態をまとめます。
 
-| 設定項目                                                         | 設定内容                                                         | develop           | staging         | production     |
-| ---------------------------------------------------------------- | ---------------------------------------------------------------- | ----------------- | --------------- | -------------- |
-| Required Reviews                                                 | PR を必須とし、直接のマージを禁止する                            | ✓                 | ✓               | ✓              |
-| Required number of approvals                                     | レビュー承認者の必要人数（1 名）                                 | ✓                 | ✓               | ✓              |
-| Dismiss stale pull request approvals when new commits are pushed | 新しいコミットがプッシュされた際に、既存の承認を無効化する       | ✓                 | ✓               | ✓              |
-| Require review from Code Owners                                  | コードオーナーからのレビュー承認を必須とする                     | ✓                 | ✓               | ✓              |
-| Restrict who can dismiss pull request reviews                    | PR のレビューを却下できる権限者を制限する                        | -                 | Leaders/Seniors | Owners/Leaders |
-| Require status checks to pass before merging                     | ステータスチェックの通過をマージの条件とする                     | ✓                 | ✓               | ✓              |
-| Require branches to be up to date before merging                 | マージ前にターゲットブランチに対して最新状態であることを要求する | ✓                 | ✓               | ✓              |
-| Required status checks\*                                         | マージ前に通過が必要なステータスチェック項目を指定する           | 構文チェック / UT | -               | -              |
-| Require conversation resolution before merging                   | すべての会話（コメント）が解決済みであることをマージの条件とする | ✓                 | ✓               | ✓              |
-| Include administrators                                           | 管理者に対してもこれらの制限を適用する                           | ✓                 | ✓               | ✓              |
-| Restrict who can push to matching branches                       | 対象ブランチへの直接プッシュができる権限者を制限する             | -                 | -               | -              |
+| 設定項目                                                         | 設定内容                                                          | develop           | staging         | production     |
+| ---------------------------------------------------------------- | ----------------------------------------------------------------- | ----------------- | --------------- | -------------- |
+| Required Reviews                                                 | PR を必須とし、直接の merge を禁止する                            | ✓                 | ✓               | ✓              |
+| Required number of approvals                                     | レビュー承認者の必要人数（1 名）                                  | ✓                 | ✓               | ✓              |
+| Dismiss stale pull request approvals when new commits are pushed | 新しいコミットがプッシュされた際に、既存の承認を無効化する        | ✓                 | ✓               | ✓              |
+| Require review from Code Owners                                  | コードオーナーからのレビュー承認を必須とする                      | ✓                 | ✓               | ✓              |
+| Restrict who can dismiss pull request reviews                    | PR のレビューを却下できる権限者を制限する                         | -                 | Leaders/Seniors | Owners/Leaders |
+| Require status checks to pass before merging                     | ステータスチェックの通過を merge の条件とする                     | ✓                 | ✓               | ✓              |
+| Require branches to be up to date before merging                 | merge 前にターゲットブランチに対して最新状態であることを要求する  | ✓                 | ✓               | ✓              |
+| Required status checks\*                                         | merge 前に通過が必要なステータスチェック項目を指定する            | 構文チェック / UT | -               | -              |
+| Require conversation resolution before merging                   | すべての会話（コメント）が解決済みであることを merge の条件とする | ✓                 | ✓               | ✓              |
+| Include administrators                                           | 管理者に対してもこれらの制限を適用する                            | ✓                 | ✓               | ✓              |
+| Restrict who can push to matching branches                       | 対象ブランチへの直接プッシュができる権限者を制限する              | -                 | -               | -              |
 
 - \* 必要なチェックは開発側と検討して実装します。
 
@@ -361,8 +361,8 @@ develop ブランチに変更を merge する際には以下のフローで作�
 
    - GitHub Actions による CI の実行
      - 静的解析
-     - 単体テスト（UT）
      - リンターチェック
+     - （必要であれば）単体テスト(UT)
    - CI の結果は GitHub 上で確認可能
 
    CI によるテストにパスしないと PR の作成が行えません。
@@ -371,7 +371,7 @@ develop ブランチに変更を merge する際には以下のフローで作�
 
    CI が成功したことを確認後、以下の手順で PR を作成します。
 
-   - 適切なブランチをマージ先として選択
+   - 適切なブランチを merge 先として選択
    - PR template に従って内容を記述
    - レビュアーを 1 名以上指定（該当環境に応じた権限を持つメンバー）
    - 関連する Issue をリンク（あれば）
@@ -386,9 +386,9 @@ develop ブランチに変更を merge する際には以下のフローで作�
 
    すべてのレビューコメントが解決され、必要な承認が得られるまでこのプロセスを繰り返します。
 
-6. マージの実行
+6. merge の実行
 
-   必要な承認と CI チェックが完了したら、PR 作成者が以下を確認してマージを実行します。
+   必要な承認と CI チェックが完了したら、PR 作成者が以下を確認して merge を実行します。
 
    - 必要な承認が得られていること
    - すべてのレビューコメントが解決していること
@@ -399,6 +399,7 @@ develop から staging、staging から production に merge を行う際には�
 ### 4.3 Pull Request Template
 
 PR template の内容を以下に規定します。
+（あくまで template なので状況に応じて変更して使用して下さい）
 
 ```markdown
 ## 概要
@@ -443,22 +444,14 @@ S3バケット監視用Lambda関数に、CloudWatch Logsへの詳細なログ出
 
 ## テスト内容
 
-1. ローカル環境でのテスト
+- developブランチへmergeの場合はローカル環境でのテスト結果やGitHub ActionsでのUT結果を添付
 
 # テストケース実行結果
 test_s3_event_logging: PASS
 test_sns_message_logging: PASS
 test_error_logging: PASS
 
-2. AWS環境での動作確認
-- S3バケットへのファイルアップロード
-- CloudWatch Logsでのログ確認
-
-START RequestId: 123e4567-e89b-12d3-a456-426614174000
-2024-01-01T00:00:00.000Z [INFO] Received S3 event for bucket: my-bucket, key: test.txt
-2024-01-01T00:00:01.000Z [INFO] Sending SNS notification: File test.txt uploaded to my-bucket
-2024-01-01T00:00:02.000Z [INFO] SNS notification sent successfully
-END RequestId: 123e4567-e89b-12d3-a456-426614174000
+- stagingやproductionブランチへmergeの場合はテスト結果報告書を添付する
 
 ## レビュー項目
 
@@ -476,11 +469,11 @@ INFRA-789: Lambda関数のログ出力機能強化
 
 各環境に応じたレビューレビュアーを以下のように定義します。
 
-| 環境       | レビュー要件                                 | レビュー観点                                                       |
-| ---------- | -------------------------------------------- | ------------------------------------------------------------------ |
-| develop    | シニアエンジニアまたはリーダーによるレビュー | 実装の妥当性、テストの十分性、アーキテクチャ整合性                 |
-| staging    | シニアエンジニアまたはリーダーによるレビュー | develop 環境でのテスト結果の妥当性、セキュリティ考慮               |
-| production | オーナーまたはリーダーによるレビュー         | staging 環境でのテスト結果の妥当性、性能への影響、リリース要件充足 |
+| 環境       | レビュー要件                                 | レビュー観点                                                                                 |
+| ---------- | -------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| develop    | シニアエンジニアまたはリーダーによるレビュー | 実装の妥当性、テストの十分性、アーキテクチャ整合性、変更セットの確認(CFn の場合)             |
+| staging    | シニアエンジニアまたはリーダーによるレビュー | develop 環境でのテスト結果の妥当性（テスト結果報告書）の確認、セキュリティ考慮               |
+| production | オーナーまたはリーダーによるレビュー         | staging 環境でのテスト結果の妥当性（テスト結果報告書）の確認、性能への影響、リリース要件充足 |
 
 レビューについては 6 章の「レビュー方針」で詳しく記載します。
 
@@ -506,6 +499,7 @@ Issue には以下の特徴があります。
 ### 5.2 Issue template
 
 Issue template の内容を以下に規定します。
+（あくまで template なので状況に応じて変更して使用して下さい）
 
 ```markdown
 ## バグ報告テンプレート
@@ -549,7 +543,6 @@ Issue template の内容を以下に規定します。
 
    - バグを発見したとき
    - 新機能や改善の提案があるとき
-   - 定義された作業単位の実装を開始するとき
 
 2. Issue 管理のプラクティス
 
@@ -635,7 +628,7 @@ Issue template の内容を以下に規定します。
    - セキュリティが考慮されていること
 
 3. production 環境
-   - オーナーによる承認が必要
+   - オーナーまたはリーダーによる承認が必要
    - staging 環境での検証が完了していること
    - 性能要件を満たしていること
 
@@ -685,31 +678,6 @@ Issue template の内容を以下に規定します。
    - 修正内容の説明
    - Resolve による完了マーク
 
-### 6.6 差し戻し時の対応
-
-重大な問題が発見された場合、レビューを差し戻すことがあります。その場合の対応プロセスは以下の通りです。
-
-#### 差し戻しの判断基準
-
-以下のいずれかに該当する場合、レビューを差し戻します。
-
-| 条件               | 例                   | 対応方針               |
-| ------------------ | -------------------- | ---------------------- |
-| 仕様との不整合     | 要件を満たしていない | 仕様の再確認と修正     |
-| セキュリティリスク | 脆弱性の存在         | セキュリティ対策の実装 |
-| 重大なバグ         | データ不整合の可能性 | ロジックの見直し       |
-| 性能問題           | 著しい性能劣化       | アルゴリズムの改善     |
-
-### 再レビュープロセス
-
-差し戻し後の対応は、以下の手順で進めます。
-
-- 指摘事項の分析と対応計画の作成
-- 必要に応じた設計の見直し
-- コードの修正とテストの実施
-- 修正内容の文書化と説明の準備
-- レビューの再依頼
-
 ## 7. 運用管理
 
 ### 7.1 リポジトリ管理
@@ -718,15 +686,15 @@ Issue template の内容を以下に規定します。
 
 #### 基本設定
 
-| 設定項目              | 設定値       | 目的                               |
-| --------------------- | ------------ | ---------------------------------- |
-| Default branch        | develop      | 標準的な命名規則の採用             |
-| Repository visibility | Private      | 意図しない情報公開の防止           |
-| Merge button          | Squash merge | コミット履歴の整理                 |
-| Allow auto-merge      | Disabled     | レビュー徹底の保証                 |
-| Allow squash merge    | Enabled      | コミット履歴を整理してマージ可能に |
-| Allow merge commits   | Disabled     | 直接マージの防止                   |
-| Allow rebase merge    | Disabled     | 履歴改変の防止                     |
+| 設定項目              | 設定値       | 目的                                |
+| --------------------- | ------------ | ----------------------------------- |
+| Default branch        | develop      | 標準的な命名規則の採用              |
+| Repository visibility | Private      | 意図しない情報公開の防止            |
+| Merge button          | Squash merge | コミット履歴の整理                  |
+| Allow auto-merge      | Disabled     | レビュー徹底の保証                  |
+| Allow squash merge    | Enabled      | コミット履歴を整理して merge 可能に |
+| Allow merge commits   | Disabled     | 直接 merge の防止                   |
+| Allow rebase merge    | Disabled     | 履歴改変の防止                      |
 
 #### 必須ファイル設定
 
@@ -749,7 +717,7 @@ Issue template の内容を以下に規定します。
 2. ブランチ保護ルール
    - ブランチの保護設定
    - レビュー必須化設定
-   - マージ条件設定
+   - merge 条件設定
 
 ### 7.3 セキュリティ
 
@@ -766,26 +734,21 @@ Issue template の内容を以下に規定します。
 
 #### Organization 制限
 
-| 制限項目                         | 設定                    | 理由                                       |
-| -------------------------------- | ----------------------- | ------------------------------------------ |
-| Repository creation              | Owners and Leaders only | プロジェクト管理の効率化と適切な管理の両立 |
-| Allow forking                    | Disabled                | コード流出の防止                           |
-| Allow private repository forking | Disabled                | 管理の一元化                               |
+| 制限項目                         | 設定                           | 理由                                       |
+| -------------------------------- | ------------------------------ | ------------------------------------------ |
+| Repository creation              | Owners and Leaders and Seniors | プロジェクト管理の効率化と適切な管理の両立 |
+| Allow forking                    | Disabled                       | コード流出の防止                           |
+| Allow private repository forking | Disabled                       | 管理の一元化                               |
 
 #### 脆弱性管理
 
 コードの安全性を継続的に監視するため、以下のセキュリティ機能を標準で有効化します。
 
-1. **Secret Scanning**
+**Secret Scanning**
 
-   - 全リポジトリでの自動スキャン
-   - プッシュ時の即時検査
-   - 検出時の自動通知
-
-2. **Dependabot 設定**
-
-   - 脆弱性の検知とアラートの通知
-   - 検知された脆弱性に対して対策の提案
+- 全リポジトリでの自動スキャン
+- プッシュ時の即時検査
+- 検出時の自動通知
 
 #### アクセス制御と監査
 
