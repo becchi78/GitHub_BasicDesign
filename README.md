@@ -84,17 +84,17 @@ GitHub における Organization 内の Team 機能を使用し、以下の階�
 ```mermaid
 graph TD
    subgraph Organization
-      A[Oweners] --> B[Readers]
-      A --> C[Readers]
+      A[Oweners] --> B[Infrastructure Leaders]
+      A --> C[Application Leaders]
 
    subgraph Infrastructure Team
-      B --> D[Seniors]
-      D --> E[Engineers]
+      B --> D[Infrastructure Seniors]
+      D --> E[Infrastructure Engineers]
    end
 
    subgraph Application Team
-      C --> F[Seniors]
-      F --> G[Engineers]
+      C --> F[Application Seniors]
+      F --> G[Application Engineers]
    end
    end
 ```
@@ -107,13 +107,13 @@ graph TD
 | ------------------------ | -------------------------------- |
 | Owners                   | オーナー                         |
 | Application              | アプリチームのメンバー           |
-| Application/Readers      | アプリチームのリーダー           |
-| Application/Seniors      | アプリチームのシニアエンジニア   |
-| Application/Engineers    | アプリチームのエンジニア         |
+| Application Leaders      | アプリチームのリーダー           |
+| Application Seniors      | アプリチームのシニアエンジニア   |
+| Application Engineers    | アプリチームのエンジニア         |
 | Infrastructure           | インフラチームメンバー           |
-| Infrastructure/Readers   | インフラチームのリーダー         |
-| Infrastructure/Seniors   | インフラチームのシニアエンジニア |
-| Infrastructure/Engineers | インフラチームのエンジニア       |
+| Infrastructure Leaders   | インフラチームのリーダー         |
+| Infrastructure Seniors   | インフラチームのシニアエンジニア |
+| Infrastructure Engineers | インフラチームのエンジニア       |
 
 この組織構造により、以下を実現します。
 
@@ -159,14 +159,15 @@ Team 内での権限を定義するロールです。
 #### GitHub の Repository レベルロール
 
 リポジトリに対する権限を定義するロールです。
+リポジトリ個別には設定せず、Organization roles 中で設定を行うことで全リポジトリの権限を設定します。
 
-| ロール   | 説明                                                       |
-| -------- | ---------------------------------------------------------- |
-| Admin    | リポジトリの管理者権限。全ての設定変更とアクセス管理が可能 |
-| Maintain | リポジトリの管理（設定変更を除く）とコードの変更が可能     |
-| Write    | コードの変更と Pull Request の作成が可能                   |
-| Triage   | Issue や Pull Request の管理が可能（コード変更不可）       |
-| Read     | 読み取りのみ可能                                           |
+| ロール                  | 説明                                                       |
+| ----------------------- | ---------------------------------------------------------- |
+| All-repository admin    | リポジトリの管理者権限。全ての設定変更とアクセス管理が可能 |
+| All-repository maintain | リポジトリの管理（設定変更を除く）とコードの変更が可能     |
+| All-repository write    | コードの変更と Pull Request の作成が可能                   |
+| All-repository triage   | Issue や Pull Request の管理が可能（コード変更不可）       |
+| All-repository read     | 読み取りのみ可能                                           |
 
 ### 2.4 承認権限の設定
 
@@ -174,17 +175,17 @@ Team 内での権限を定義するロールです。
 
 各レベルのロールを Team に割り当てることで Team に対して適切な権限設定を行います。
 
-| Team                     | Organization Role | Team Role  | Repository Role |
-| ------------------------ | ----------------- | ---------- | --------------- |
-| Owners                   | Owner             | -          | -               |
-| Application              | Member            | -          | -               |
-| Application/Leaders      | Owner             | Maintainer | Admin           |
-| Application/Seniors      | Member            | Maintainer | Admin           |
-| Application/Engineers    | Member            | Member     | Write           |
-| Infrastructure           | Member            | -          | -               |
-| Infrastructure/Leaders   | Owner             | Maintainer | Admin           |
-| Infrastructure/Seniors   | Member            | Maintainer | Admin           |
-| Infrastructure/Engineers | Member            | Member     | Write           |
+| Team                     | Organization Role | Team Role  | Repository Role      |
+| ------------------------ | ----------------- | ---------- | -------------------- |
+| Owners                   | Owner             | -          | -                    |
+| Application              | Member            | -          | -                    |
+| Application/Leaders      | Owner             | Maintainer | All-repository admin |
+| Application/Seniors      | Member            | Maintainer | All-repository admin |
+| Application/Engineers    | Member            | Member     | All-repository write |
+| Infrastructure           | Member            | -          | -                    |
+| Infrastructure/Leaders   | Owner             | Maintainer | All-repository admin |
+| Infrastructure/Seniors   | Member            | Maintainer | All-repository admin |
+| Infrastructure/Engineers | Member            | Member     | All-repository write |
 
 #### ブランチ保護ルール
 
@@ -723,32 +724,21 @@ Issue template の内容を以下に規定します。
 
 #### 認証とアクセス制御
 
-開発資産を保護するため、認証メカニズムを採用します。以下の設定により、アカウントセキュリティを確保します。
+開発資産を保護するため、2 要素認証（2FA）の必須化を行いアカウントセキュリティを確保します。
 
-#### 認証設定
+#### Personal Access Token
 
-- 2 要素認証（2FA）の必須化
-- 認証アプリまたはセキュリティキーの推奨
-- アクセストークンの 90 日有効期限制限
-- SSH キーの 180 日更新必須
+Personal Access Token を使用する場合には最大 90 日の有効期限の設定を行います。
 
 #### Organization 制限
 
-| 制限項目                         | 設定                           | 理由                                       |
-| -------------------------------- | ------------------------------ | ------------------------------------------ |
-| Repository creation              | Owners and Leaders and Seniors | プロジェクト管理の効率化と適切な管理の両立 |
-| Allow forking                    | Disabled                       | コード流出の防止                           |
-| Allow private repository forking | Disabled                       | 管理の一元化                               |
-
-#### 脆弱性管理
-
-コードの安全性を継続的に監視するため、以下のセキュリティ機能を標準で有効化します。
-
-**Secret Scanning**
-
-- 全リポジトリでの自動スキャン
-- プッシュ時の即時検査
-- 検出時の自動通知
+| 制限項目                      | 設定     | 理由                                        |
+| ----------------------------- | -------- | ------------------------------------------- |
+| Repository creation           | private  | 作成できるリポジトリを private に限定       |
+| Allow forking                 | Disabled | コード流出の防止                            |
+| Outside collaborators         | Disabled | 外部参加者の招待を Owner のみに限定         |
+| Pages creation                | private  | メンバーが作成できる Page を private に限定 |
+| Allow members to create teams | Disabled | team の作成権限を Owner に限定              |
 
 #### アクセス制御と監査
 
